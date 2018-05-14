@@ -3,7 +3,7 @@ A Linux translate tool based on JRE8, MySQL5.7 and Bash.
 
 ## Introduction
 
-This is an international translate tool which works in a bash environment. It uses the `Youdao`[^noa]online API translate service and local `mysql` server to support a personal translate service. The tool can translate nine languages including English, Simplified Chinese, Japanese, Korean,  French, Russian, Portuguese, Spanish and Vietnamese from one to another one.
+This is an international translate tool which works in a bash environment. It uses the `Youdao`[^noa] online API translate service and local `mysql` server to support a personal translate service. The tool can translate nine languages including English, Simplified Chinese, Japanese, Korean,  French, Russian, Portuguese, Spanish and Vietnamese from one to another one.
 
 ## Preinstall
 
@@ -54,4 +54,4 @@ Description:
 
 ------
 
-[^]: Youdao is a subsidiary of Netease (a Chinese Internet technology company) that use big data technology to provide mobile Internet applications.
+[^noa]: Youdao is a subsidiary of Netease (a Chinese Internet technology company) that use big data technology to provide mobile Internet applications.
