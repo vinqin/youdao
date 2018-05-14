@@ -43,12 +43,6 @@ public class DBManipulator {
 
         } catch (IOException e) {
             return null;
-        } finally {
-            /*
-            if (sqlSession != null) {
-                sqlSession.close();
-            }
-            */
         }
 
         return basicTranslation;
@@ -95,8 +89,7 @@ public class DBManipulator {
 
         sqlSession.close();
 
-        boolean addStatus = flag || ((n1 + n2) > 0);
-        return addStatus;
+        return flag || ((n1 + n2) > 0);
 
     }
 

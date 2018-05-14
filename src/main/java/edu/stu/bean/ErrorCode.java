@@ -8,7 +8,7 @@ public class ErrorCode {
     private String message;
 
     public ErrorCode(Integer code) {
-        this.code = code;
+        setCode(code);
         processCode(code);
     }
 
@@ -16,7 +16,7 @@ public class ErrorCode {
         return code;
     }
 
-    public void setCode(Integer code) {
+    private void setCode(Integer code) {
         this.code = code;
     }
 

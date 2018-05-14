@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ResultManipulator {
-    public static ResultSet resultSet = null;
+    public static final ResultSet resultSet = new ResultSet();
     public static StringBuilder resultPrint = null;
 
     public ResultManipulator(String resultJsonString, String type) {
@@ -17,27 +17,27 @@ public class ResultManipulator {
     }
 
     private void jsonSplit(String resultJsonString, String type) {
+        //此处必须保证resultJsonString是一个JSON格式的字符串
         JSONObject resultJson = new JSONObject(resultJsonString);
         ErrorCode errorCode = new ErrorCode(Integer.parseInt(resultJson.getString("errorCode")));//错误返回码，一定存在
         if (!errorCode.isStatus()) {
             switch (type.toLowerCase()) {
                 case "zh-chs":
-                    resultPrint = new StringBuilder(PrintCN.failure + "\n\t" + errorCode.getCode() + errorCode
+                    resultPrint = new StringBuilder(PrintCN.FAILURE + "\n\t" + errorCode.getCode() + errorCode
                             .getMessage());
                     break;
                 default:
-                    resultPrint = new StringBuilder(PrintEN.failure + " " + errorCode.getCode());
+                    resultPrint = new StringBuilder(PrintEN.FAILURE + " " + errorCode.getCode());
             }
             return;//查询失败，直接返回
         }
 
-        resultSet = new ResultSet();
         resultSet.setErrorCode(errorCode);
         if (!setQuery(resultJson)) {
             if (type.toLowerCase().equals("zh-chs")) {
-                resultPrint = new StringBuilder(PrintCN.noResult);
+                resultPrint = new StringBuilder(PrintCN.NO_RESULT);
             } else {
-                resultPrint = new StringBuilder(PrintEN.noResult);
+                resultPrint = new StringBuilder(PrintEN.NO_RESULT);
             }
             return;//查询失败，直接返回
         }
@@ -99,14 +99,21 @@ public class ResultManipulator {
             String ukSpeechUrl = "";
             String usSpeechUrl = "";
             try {
-                phoneticOfBasic = basicJSON.getString("phonetic");
+                phoneticOfBasic = basicJSON.getString("phonetic");//注意如果指定的key没有map到value，则会抛异常
                 ukPhonetic = basicJSON.getString("uk-phonetic");
                 usPhonetic = basicJSON.getString("us-phonetic");
-                ukSpeechUrl = basicJSON.getString("uk-speech");//注意如果指定的key没有map到value，则会抛异常
+            } catch (JSONException jsonException) {
+            }
+            try {
+                ukSpeechUrl = basicJSON.getString("uk-speech");
+            } catch (JSONException jsonException) {
+            }
+            try {
                 usSpeechUrl = basicJSON.getString("us-speech");
             } catch (JSONException jsonException) {
-
             }
+
+
             JSONArray explainsOfBasic = basicJSON.getJSONArray("explains");//一定存在
             basicTranslation.setPhonetic(phoneticOfBasic);
             basicTranslation.setUkPhonetic(ukPhonetic);
@@ -187,7 +194,7 @@ public class ResultManipulator {
         List<WebTranslation> webs = null;
         try {
             JSONArray webOfDetail = resultJson.getJSONArray("web"); // 有道词典-网络释义，该结果不一定存在
-            List<Object> jsonObjectList = (List) webOfDetail.toList();//webOfDetail.toList()中的元素已经被硬编码为HashMap
+            List<Object> jsonObjectList = webOfDetail.toList();//webOfDetail.toList()中的元素已经被硬编码为HashMap
             webs = new ArrayList<>();
             for (Object obj : jsonObjectList) {
                 Map<Object, Object> map1 = (Map) obj;
@@ -210,28 +217,28 @@ public class ResultManipulator {
     }
 
     private void getResultCN(JSONObject resultJson) {
-        resultPrint.append(PrintCN.show);
+        resultPrint.append(PrintCN.SHOW);
         resultPrint.append(resultSet.getQuery());
         resultPrint.append("\n");
-        resultPrint.append(PrintCN.dest);
+        resultPrint.append(PrintCN.DEST);
         resultPrint.append(langCN(resultSet.getLang()));
         resultPrint.append("\n");
 
         if (resultSet.getBasicTranslation() != null) {
-            resultPrint.append(PrintCN.phonetic);
-            resultPrint.append("\n\t" + PrintCN.ukPhonetic + " ");
+            resultPrint.append(PrintCN.PHONETIC);
+            resultPrint.append("\n\t" + PrintCN.UK_PHONETIC + " ");
             resultPrint.append(resultSet.getBasicTranslation().getUkPhonetic());
-            resultPrint.append("\n\t" + PrintCN.usPhonetic + " ");
+            resultPrint.append("\n\t" + PrintCN.US_PHONETIC + " ");
             resultPrint.append(resultSet.getBasicTranslation().getUsPhonetic());
             resultPrint.append("\n");
-            resultPrint.append(PrintCN.basicTranslation);
+            resultPrint.append(PrintCN.BASIC_TRANSLATION);
             List<BasicExplains> explains = resultSet.getBasicTranslation().getExplainsList();
             for (BasicExplains exp : explains) {
                 resultPrint.append("\n\t\"" + exp.getExplains() + "\"  ");
             }
         }
         resultPrint.append("\n");
-        resultPrint.append(PrintCN.detailTranslation);
+        resultPrint.append(PrintCN.DETAIL_TRANSLATION);
         resultPrint.append("\n");
         for (String str : resultSet.getTranslation()) {
             resultPrint.append("\t\"" + str + "\"  ");
@@ -242,7 +249,7 @@ public class ResultManipulator {
         if (ParametersManipulator.parameters.getWebInformation()) {
             List<WebTranslation> webs = getWebTranslations(resultJson);
             if (webs != null) {
-                resultPrint.append(PrintCN.webTranslation);
+                resultPrint.append(PrintCN.WEB_TRANSLATION);
                 resultPrint.append("\n");
                 resultApp(webs);
             }
@@ -250,19 +257,19 @@ public class ResultManipulator {
 
         resultPrint.append("\n");
 
-        resultPrint.append(PrintCN.searchCounts);
+        resultPrint.append(PrintCN.SEARCH_COUNTS);
         SimpleDateFormat time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (resultSet.getBasicTranslation() != null) {
             resultPrint.append(resultSet.getBasicTranslation().getCount());
-            resultPrint.append(PrintCN.searchHistory);
+            resultPrint.append(PrintCN.SEARCH_HISTORY);
             resultPrint.append(" ");
-            resultPrint.append(PrintCN.recentlySearchDate);
+            resultPrint.append(PrintCN.RECENTLY_SEARCH_DATE);
             resultPrint.append(time.format(resultSet.getBasicTranslation().getDate()));
         } else {
             resultPrint.append(0);
-            resultPrint.append(PrintCN.searchHistory);
+            resultPrint.append(PrintCN.SEARCH_HISTORY);
             resultPrint.append(" ");
-            resultPrint.append(PrintCN.recentlySearchDate);
+            resultPrint.append(PrintCN.RECENTLY_SEARCH_DATE);
             resultPrint.append(time.format(new Date()));
         }
 
@@ -271,26 +278,26 @@ public class ResultManipulator {
 
 
     private void getResultEN(JSONObject resultJson) {
-        resultPrint.append(PrintEN.show);
+        resultPrint.append(PrintEN.SHOW);
         resultPrint.append(resultSet.getQuery());
         resultPrint.append("\n");
-        resultPrint.append(PrintEN.dest);
+        resultPrint.append(PrintEN.DEST);
         resultPrint.append(langEN(resultSet.getLang()));
         resultPrint.append("\n");
         if (resultSet.getBasicTranslation() != null) {
-            resultPrint.append(PrintEN.phonetic);
-            resultPrint.append("\n\t" + PrintEN.ukPhonetic + " ");
+            resultPrint.append(PrintEN.PHONETIC);
+            resultPrint.append("\n\t" + PrintEN.UK_PHONETIC + " ");
             resultPrint.append(resultSet.getBasicTranslation().getUkPhonetic());
-            resultPrint.append("\n\t" + PrintEN.usPhonetic + " ");
+            resultPrint.append("\n\t" + PrintEN.US_PHONETIC + " ");
             resultPrint.append(resultSet.getBasicTranslation().getUsPhonetic());
             resultPrint.append("\n");
-            resultPrint.append(PrintEN.basicTranslation);
+            resultPrint.append(PrintEN.BASIC_TRANSLATION);
             for (BasicExplains exp : resultSet.getBasicTranslation().getExplainsList()) {
                 resultPrint.append("\n\t\"" + exp.getExplains() + "\"  ");
             }
         }
         resultPrint.append("\n");
-        resultPrint.append(PrintEN.detailTranslation);
+        resultPrint.append(PrintEN.DETAIL_TRANSLATION);
         resultPrint.append("\n");
         for (String str : resultSet.getTranslation()) {
             resultPrint.append("\t\"" + str + "\"  ");
@@ -301,7 +308,7 @@ public class ResultManipulator {
         if (ParametersManipulator.parameters.getWebInformation()) {
             List<WebTranslation> webs = getWebTranslations(resultJson);
             if (webs != null) {
-                resultPrint.append(PrintEN.webTranslation);
+                resultPrint.append(PrintEN.WEB_TRANSLATION);
                 resultPrint.append("\n");
                 resultApp(webs);
             }
@@ -309,18 +316,18 @@ public class ResultManipulator {
         resultPrint.append("\n");
 
         SimpleDateFormat time = new SimpleDateFormat("HH:mm:ss yyyy-MM-dd");
-        resultPrint.append(PrintEN.searchCounts);
+        resultPrint.append(PrintEN.SEARCH_COUNTS);
         if (resultSet.getBasicTranslation() != null) {
             resultPrint.append(resultSet.getBasicTranslation().getCount());
-            resultPrint.append(PrintEN.searchHistory);
+            resultPrint.append(PrintEN.SEARCH_HISTORY);
             resultPrint.append(" ");
-            resultPrint.append(PrintEN.recentlySearchDate);
+            resultPrint.append(PrintEN.RECENTLY_SEARCH_DATE);
             resultPrint.append(time.format(resultSet.getBasicTranslation().getDate()));
         } else {
             resultPrint.append(0);
-            resultPrint.append(PrintEN.searchHistory);
+            resultPrint.append(PrintEN.SEARCH_HISTORY);
             resultPrint.append(" ");
-            resultPrint.append(PrintEN.recentlySearchDate);
+            resultPrint.append(PrintEN.RECENTLY_SEARCH_DATE);
             resultPrint.append(time.format(new Date()));
         }
 
