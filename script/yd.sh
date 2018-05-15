@@ -1,0 +1,163 @@
+#!/bin/bash
+
+: << !
+命令行参数定义规则：
+Java参数:shell变量
+args[0]:src_type                    # 需要翻译的源语言类型(String)
+args[1]:dest_type                   # 需要翻译的目标语言类型(String)
+args[2]:filepath                    # 要翻译内容所在的文件的路径(String)
+args[3]:web                         # 开启web翻译的判断标志(Boolean)
+args[4]:basic_pronunciation         # 要播放的基本音标发音的类型，英式音标（uk）或美式音标（us）二选一，如果basic_pronunciation的值为null代表不发音(String)
+args[5]:voice                       # 要播放的声音类型，女声（0），男声（1），默认值为0(Character)
+args[6]:source_speech               # 用sox播放所查询的源内容的判断标志(Boolean)
+args[7]:dest_speech                 # 用sox播放翻译后的内容的判断标志(Boolean)
+args[8]:mp3_dir                     # 从有道API下载的基本音标的音频文件(.mp3格式)需要存放目录
+args[9+]:$*                         # 需要翻译的内容(String)
+!
+
+usage() {
+  echo "Usage: translate [OPTION]... [WORD]..."
+  echo -e "Translate words from specified language type to specified language type(the default language type is auto).\n"
+  echo "Description:"
+  echo -e "     -F FILE, the sourced file.\n\tThe file contains what you want to translate."
+  echo -e "     -f TYPE, the sourced language type.\n\tIt can be zh-CHS(Simplified Chinese), ja(Japanese), EN(English),\n\tko(Korean), fr(French), ru(Russian), pt(Portuguese), es(Spanish) or vi(Vietnamese).\n\tIt can auto detect the sourced language type if you do not set the sourced language type."
+  echo -e "     -t TYPE, the targeted language type.\n\tIt can be zh-CHS(Simplified Chinese), ja(Japanese), EN(English),\n\tko(Korean), fr(French), ru(Russian), pt(Portuguese) or es(Spanish) or vi(Vietnamese).\n\tIt can auto detect the targeted language type if you do not set the targeted language type."
+  echo -e "     -w Enable the web translation."
+  echo -e "     -p Enable sox to play the basic pronunciation. Basic pronunciation can be uk or us."
+  echo -e "     -v Choose the voice type of basic pronunciation, 0 stands for female voice and 1 for male.\n\tDefualt voice is female and you need enable option p before choose this voice type."
+  echo -e "     -S Enable sox to play the query information."
+  echo -e "     -T Enable sox to play the results of translation."
+  echo -e "     -h Print this help information."
+  exit 1
+}
+
+# 源语言类型
+src_type="auto"
+# 目标语言类型
+dest_type="auto"
+# 要翻译内容所在的文件的路径
+filepath="null"
+# 开启web翻译的判断标志
+web="false"
+# 要播放的基本音标发音的类型
+basic_pronunciation="null"
+# 要播放的声音类型
+voice="0"
+# 用sox播放所查询的源内容的判断标志
+source_speech="false"
+# 用sox播放翻译后的内容的判断标志
+dest_speech="false"
+# 音频文件(.mp3格式)存放的目录
+mp3_dir="$HOME/tools/.youdao/mp3/"
+
+# 如果音频文件存放的目录事先不存在，则先创建目录
+if [ ! -d "$mp3_dir" ];then
+  mkdir -p $mp3_dir
+fi
+
+# 辅助变量
+voice_flag="false"
+
+while getopts ':F:f:t:p:v:wSTh' OPT; do
+  case $OPT in
+    F)
+      filepath="$OPTARG" ;;
+    f)
+      src_type="$OPTARG" ;;
+    t)
+      dest_type="$OPTARG" ;;
+    p)
+      basic_pronunciation="$OPTARG" ;;
+    v)
+      voice_flag="true"
+      voice="$OPTARG" ;;
+    w)
+      web="true" ;;
+    S)
+      source_speech="true" ;;
+    T)
+      dest_speech="true" ;;
+    h)
+      usage ;;
+    :)
+      echo "translate: option requires an argument '-$OPTARG'"
+      echo "Try 'translate -h' for more information."
+      exit 64
+      ;;
+    ?)
+      echo "translate: invalid option '-$OPTARG'"
+      echo "Try 'translate -h' for more information."
+      exit 2
+      ;;
+   esac
+done
+
+# 确保filepath对应的文件存在且可读
+if [ "$filepath" != "null" ];then
+  if [[ ! ( -f "$filepath" && -r "$filepath" ) ]]; then
+    echo "translate: cannot access '$filepath': No such file or make sure it is a readable file."
+    exit 2
+  fi
+fi
+
+# 确保basic_pronunciation的值正确
+if [[ "$basic_pronunciation" != "null" && "$basic_pronunciation" != "uk" && "$basic_pronunciation" != "us" ]]; then
+    echo "-p need argument uk or us."
+    echo "Try 'translate -h' for more information."
+    exit 1
+fi
+
+# 确保voice的值正确
+if [[ "$voice_flag" == "true" ]]; then
+  if [[ "$voice" != "0" && "$voice" != "1" ]]; then
+    echo "-v need argument 0 or 1."
+    echo "Try 'translate -h' for more information."
+    exit 1
+  fi
+fi
+
+
+shift $(($OPTIND - 1))
+words="$*"
+
+# java命令
+java_command="/opt/jdk8/jdk1.8.0_151/bin/java -javaagent:/home/vinqin/tools/idea-IU-173.3942.27/lib/idea_rt.jar=38507:/home/vinqin/tools/idea-IU-173.3942.27/bin -Dfile.encoding=UTF-8 -classpath /opt/jdk8/jdk1.8.0_151/jre/lib/charsets.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/deploy.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/cldrdata.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/dnsns.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/jaccess.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/jfxrt.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/localedata.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/nashorn.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/sunec.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/sunjce_provider.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/sunpkcs11.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/ext/zipfs.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/javaws.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/jce.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/jfr.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/jfxswt.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/jsse.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/management-agent.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/plugin.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/resources.jar:/opt/jdk8/jdk1.8.0_151/jre/lib/rt.jar:/home/vinqin/IdeaProjects/youdao_v3_2/target/classes:/home/vinqin/.m2/repository/org/apache/httpcomponents/httpclient/4.5.5/httpclient-4.5.5.jar:/home/vinqin/.m2/repository/org/apache/httpcomponents/httpcore/4.4.9/httpcore-4.4.9.jar:/home/vinqin/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/home/vinqin/.m2/repository/commons-codec/commons-codec/1.10/commons-codec-1.10.jar:/home/vinqin/.m2/repository/edu/stu/json/1.0.0/json-1.0.0.jar:/home/vinqin/.m2/repository/org/mybatis/mybatis/3.4.6/mybatis-3.4.6.jar:/home/vinqin/.m2/repository/mysql/mysql-connector-java/5.1.46/mysql-connector-java-5.1.46.jar edu.stu.main.Main "
+
+$java_command $src_type $dest_type $filepath $web $basic_pronunciation $voice $source_speech $dest_speech $mp3_dir $words
+
+# 根据用户需求播放mp3文件
+if [[ "$basic_pronunciation" != "null" ]]; then
+  file_actual_path="${mp3_dir}$basic_pronunciation$*${voice}.mp3"
+  if [[ -f "$file_actual_path" && -r "$file_actual_path" ]]; then
+    play "$file_actual_path" 2> /dev/null
+  else
+    gender_flag="female"
+    if [[ "$voice" == "1" ]]; then
+      gender_flag="male"
+    fi
+    echo "Play the basic ${basic_pronunciation} $gender_flag pronunciation failed."
+  fi
+
+fi
+
+# 根据用户需求播放源内容的mp3文件
+if [[ "$source_speech" == "true" ]]; then
+  file_actual_path="${mp3_dir}src.mp3"
+  #echo "$file_actual_path"
+  if [[ -f "$file_actual_path" && -r "$file_actual_path" ]]; then
+    play "$file_actual_path" 2> /dev/null
+  else
+    echo "Play the query information failed."
+  fi
+fi
+
+# 根据用户需求播放目标内容的mp3文件
+if [[ "$dest_speech" == "true" ]]; then
+  file_actual_path="${mp3_dir}target.mp3"
+  #echo "$file_actual_path"
+  if [[ -f "$file_actual_path" && -r "$file_actual_path" ]]; then
+    play "$file_actual_path" 2> /dev/null
+  else
+    echo "Play results of translation failed."
+  fi
+fi

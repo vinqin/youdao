@@ -39,18 +39,10 @@ public class DBManipulator {
                 basicTranslation.setExplainsList(explains);
                 List<WebTranslation> web = basicMapper.getWebTranslationByBid(basicTranslation.getId());
                 basicTranslation.setWebTranslationList(web);
-
-                updateBasicTranslation(basicMapper, basicTranslation);
             }
 
         } catch (IOException e) {
             return null;
-        } finally {
-            /*
-            if (sqlSession != null) {
-                sqlSession.close();
-            }
-            */
         }
 
         return basicTranslation;
@@ -58,7 +50,17 @@ public class DBManipulator {
     }
 
 
-    private static void updateBasicTranslation(BasicTranslationMapper mapper, BasicTranslation basic) {
+    public static void updateBasicTranslation(BasicTranslation basic) {
+        if (sqlSession == null) {
+            try {
+                SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsStream
+                        (resources));
+                sqlSession = factory.openSession(true);
+            } catch (IOException e) {
+                return;
+            }
+        }
+        BasicTranslationMapper mapper = sqlSession.getMapper(BasicTranslationMapper.class);
         basic.setDate(new Date());//最后一次查询时间设置为当前时间
         basic.setCount(basic.getCount() + 1);//增加一次查询次数
         mapper.updateBasicTranslation(basic);
@@ -87,8 +89,7 @@ public class DBManipulator {
 
         sqlSession.close();
 
-        boolean addStatus = flag || ((n1 + n2) > 0);
-        return addStatus;
+        return flag || ((n1 + n2) > 0);
 
     }
 

@@ -7,6 +7,7 @@ public class BasicTranslation {
 
     private Integer id;
     private String query;
+    private String detailTranslation;
     private String lang;
     private Integer count;
     private Date date;
@@ -52,6 +53,14 @@ public class BasicTranslation {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public String getDetailTranslation() {
+        return detailTranslation;
+    }
+
+    public void setDetailTranslation(String detailTranslation) {
+        this.detailTranslation = detailTranslation;
     }
 
     public String getLang() {
