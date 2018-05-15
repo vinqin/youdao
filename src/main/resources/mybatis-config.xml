@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!--
+        mybatis可以使用properties标签来引入外部properties配置文件
+            resource. 引入类路径下的资源
+            url. 引入网络路径或者磁盘下的路径
+    -->
+    <properties resource="dbconfig.properties"></properties>
+
+
+    <settings>
+        <!-- 开启驼峰命名映射法则 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+
+    <!--
+        environments: 环境们，mybatis可以配置多种环境，id代表当前环境的唯一标识
+            transactionManager: 事务管理器类型
+            dataSource
+
+        -->
+    <environments default="development">
+
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+
+    </environments>
+    
+    <!-- mappers: 将sql映射注册到去全局配置中 -->
+    <mappers>
+
+        <!-- mapper: 注册一个sql映射
+                注册配置文件：
+                    resource: 引用类路径下的sql映射文件
+                    url: 引用网络路径或者磁盘路径下的sql映射文件
+                        file:///var/mappers/AuthorMapper.xml
+                注册接口：
+                    class: 引用接口
+         -->
+        <mapper resource="edu/stu/dao/BasicTranslationMapper.xml"/>
+
+        <!--
+            批量注册： <package name="" />
+         -->
+
+    </mappers>
+
+</configuration>

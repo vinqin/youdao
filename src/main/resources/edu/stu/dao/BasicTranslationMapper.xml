@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.stu.dao.BasicTranslationMapper">
+
+    <!-- 所有标签的parameterType属性是可以省略的 -->
+
+    <!-- BasicTranslation getBasicTranslationById(int id); -->
+    <select id="getBasicTranslationById" resultType="edu.stu.bean.BasicTranslation">
+        select * from tbl_basic_translation where id=#{id}
+    </select>
+
+    <!-- List<BasicExplains> getBasicExplainsByBid(int bId); -->
+    <select id="getBasicExplainsByBid" resultType="edu.stu.bean.BasicExplains">
+        select * from tbl_explains where b_id=#{bId}
+    </select>
+
+    <!-- List<WebTranslation> getWebTranslationByBid(int bId); -->
+    <select id="getWebTranslationByBid" resultType="edu.stu.bean.WebTranslation">
+        select * from tbl_web_translation where b_id=#{bId}
+    </select>
+
+    <!-- BasicTranslation getBasicTranslationByQuery(String query); -->
+    <select id="getBasicTranslationByQuery" resultType="edu.stu.bean.BasicTranslation">
+        select * from tbl_basic_translation where query=#{query}
+    </select>
+
+    <!-- Boolean addBasicTranslation(BasicTranslation basic); -->
+    <insert id="addBasicTranslation" parameterType="edu.stu.bean.BasicTranslation" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into tbl_basic_translation (count, date, query, lang, phonetic, uk_phonetic, us_phonetic, uk_speech_url,
+        us_speech_url, uk_speech_actual_url, us_speech_actual_url)
+        values (#{count}, #{date}, #{query}, #{lang}, #{phonetic}, #{ukPhonetic}, #{usPhonetic}, #{ukSpeechUrl},
+        #{usSpeechUrl},
+        #{ukSpeechActualUrl}, #{usSpeechActualUrl} )
+    </insert>
+
+
+    <!-- Boolean addBasicTranslationById(BasicTranslation basic, int id); -->
+    <insert id="addBasicTranslationById">
+        insert into tbl_basic_translation (id, count, date, query, phonetic, uk_phonetic, us_phonetic, uk_speech_url,
+        us_speech_url, uk_speech_actual_url, us_speech_actual_url)
+        values (#{id},#{basic.count}, #{basic.date}, #{basic.query}, #{basic.phonetic}, #{basic.ukPhonetic},
+        #{basic.usPhonetic}, #{basic.ukSpeechUrl}, #{basic.usSpeechUrl},
+        #{basic.ukSpeechActualUrl}, #{basic.usSpeechActualUrl} )
+    </insert>
+
+
+    <!-- Integer addBasicExplains(BasicTranslation basic); -->
+    <insert id="addBasicExplains" parameterType="edu.stu.bean.BasicTranslation">
+
+        insert into tbl_explains (explains, b_id) values
+        <foreach collection="explainsList" item="exp" separator=",">
+            (#{exp.explains}, #{id})
+        </foreach>
+
+    </insert>
+
+    <!-- Integer addWebTranslation(BasicTranslation basic); -->
+    <insert id="addWebTranslation" parameterType="edu.stu.bean.BasicTranslation">
+
+        insert into tbl_web_translation (web_key, web_value, b_id) values
+        <foreach collection="webTranslationList" item="web" separator=",">
+            (#{web.webKey}, #{web.webValue}, #{id})
+        </foreach>
+
+    </insert>
+
+
+    <!-- Boolean updateBasicTranslation(BasicTranslation basic); -->
+    <update id="updateBasicTranslation">
+        update tbl_basic_translation set count = #{count}, date = #{date} where query = #{query}
+    </update>
+
+    <!-- Boolean updateBasicTranslationById(BasicTranslation basic); -->
+    <update id="updateBasicTranslationById">
+        update tbl_basic_translation set uk_speech_actual_url = #{ukSpeechActualUrl}, us_speech_actual_url =
+        #{usSpeechActualUrl} where id = #{id}
+    </update>
+
+    <!-- Integer getBasicTranslationCounts(); -->
+    <select id="getBasicTranslationCounts" resultType="java.lang.Integer">
+        select count(*) from tbl_basic_translation
+    </select>
+
+
+</mapper>
