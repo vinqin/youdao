@@ -20,11 +20,9 @@ public interface BasicTranslationMapper {
 
     Boolean updateBasicTranslation(BasicTranslation basic);
 
-    Boolean updateBasicTranslationById(BasicTranslation basic);
+    Boolean updateUrlOfBasicTranslationById(BasicTranslation basic);
 
     Boolean addBasicTranslation(BasicTranslation basic);
-
-    Boolean addBasicTranslationById(@Param("basic") BasicTranslation basic, @Param("id") int id);
 
     Integer addBasicExplains(BasicTranslation basic);
 

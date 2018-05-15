@@ -19,8 +19,8 @@ import java.util.*;
 
 public class TOOL {
 
-
-    private static final Parameters PARAM = ParametersManipulator.parameters;
+    public static final Parameters PARAM = ParametersManipulator.parameters;
+    private static final DBManipulator DBMANIPULATOR = DBManipulator.getDBManipulator();
 
     /**
      * 准备发送到有道API的HTTP POST参数
@@ -95,11 +95,8 @@ public class TOOL {
 
     private static void mp3(BasicTranslation basic) {
 
-
         if (basic != null) {
-
             File ukSpeechActualFile = new File(basic.getUkSpeechActualUrl());
-
             //用户如果想要播放英式（uk）发音，而且本地不存在该mp3文件
             if (PARAM.getBasicPronunciation().equals("uk") && !ukSpeechActualFile.exists()) {
                 //下载英式（uk）发音的mp3文件
@@ -113,13 +110,12 @@ public class TOOL {
                         String tag = "";
                         basic.setUkSpeechUrl(tag);
                         basic.setUkSpeechActualUrl(tag);
-                        DBManipulator.updateBasicTranslationById(basic);
+                        DBMANIPULATOR.updateUrlOfBasicTranslationById(basic);
                     }
                 }
             }
 
             File usSpeechActualFile = new File(basic.getUsSpeechActualUrl());
-
             //用户如果想要播放美式（us）发音，而且本地不存在该mp3文件
             if (PARAM.getBasicPronunciation().equals("us") && !usSpeechActualFile.exists()) {
                 //下载美式（us）发音的mp3文件
@@ -133,21 +129,21 @@ public class TOOL {
                         String tag = "";
                         basic.setUsSpeechUrl(tag);
                         basic.setUsSpeechActualUrl(tag);
-                        DBManipulator.updateBasicTranslationById(basic);
+                        DBMANIPULATOR.updateUrlOfBasicTranslationById(basic);
                     }
                 }
             }
-
         }
 
-        if (PARAM.getSourceSpeech() && ResultManipulator.resultSet.getSpeakUrl() != null) {
+        final ResultSet RESULTSET = ResultManipulator.resultSet;
+        if (PARAM.getSourceSpeech() && RESULTSET.getSpeakUrl() != null && !RESULTSET.getSpeakUrl().equals("")) {
             //用户如果要求播放源内容的mp3文件  ==>  注意，该文件无论basic是否为空，只要API翻译成功都一定存在
             String srcContentFileName = PARAM.getMp3FilePath() + "src.mp3";
             String srcContentUrl = ResultManipulator.resultSet.getSpeakUrl();
             storeMp3File(srcContentFileName, srcContentUrl);
         }
 
-        if (PARAM.getDestSpeech() && ResultManipulator.resultSet.gettSpeakUrl() != null) {
+        if (PARAM.getDestSpeech() && RESULTSET.gettSpeakUrl() != null && !RESULTSET.gettSpeakUrl().equals("")) {
             //用户如果要求播放翻译结果的mp3文件  ==>  注意，该文件无论basic是否为空，只要API翻译成功都一定存在
             String targetContentFileName = PARAM.getMp3FilePath() + "target.mp3";
             String targetContentUrl = ResultManipulator.resultSet.gettSpeakUrl();
@@ -156,16 +152,28 @@ public class TOOL {
 
     }
 
+    //数据库初始化检查
+    public static void checkDB() {
+        if (TOOL.DBMANIPULATOR == null) {
+            //数据库连接失败
+            String type = TOOL.PARAM.getDestType();
+            if (type.toLowerCase().equals("zh-chs")) {
+                System.out.println(PrintCN.DBERROR);
+            } else {
+                System.out.println(PrintEN.DBERROR);
+            }
+            System.exit(-1);//终止程序并给出-1的终止状态
+        }
+    }
+
 
     //从数据库中获取翻译内容
     public static boolean getResultFromDB() {
-
-        BasicTranslation basic = DBManipulator.getBasicTranslation(PARAM.getQuery());
+        BasicTranslation basic = DBMANIPULATOR.getBasicTranslation(PARAM.getQuery());
         if (basic == null) {
             //数据库中找不到所需要翻译的内容
             return false;
         }
-
 
         if (PARAM.getDestType().toLowerCase().equals("zh-chs") || PARAM.getDestType().toLowerCase().equals
                 ("auto")) {
@@ -176,8 +184,9 @@ public class TOOL {
         }
         //根据用户需求处理mp3文件
         TOOL.mp3(basic);
-        System.out.println(ResultManipulator.resultPrint);//打印结果
-        DBManipulator.updateBasicTranslation(basic);//更新数据库中的记录
+        System.out.println(ResultManipulator.resultPrint);//先打印结果
+        DBMANIPULATOR.updateBasicTranslation(basic);//再更新数据库中的记录
+        DBMANIPULATOR.releaseSession();//释放数据库session
 
         return true;
     }
@@ -185,14 +194,14 @@ public class TOOL {
     //从有道API处获取翻译内容
     public static void getResultFromAPI() {
         System.out.println(ResultManipulator.resultPrint);//打印结果
+
         final ResultSet RESULTSET = ResultManipulator.resultSet;
-
         if (RESULTSET.getBasicTranslation() != null) {
-            DBManipulator.addBasicTranslation(RESULTSET.getBasicTranslation());//往数据库中添加记录
+            DBMANIPULATOR.addBasicTranslation(RESULTSET.getBasicTranslation());//往数据库中添加记录
         }
-
         //根据用户需求处理mp3文件
         TOOL.mp3(RESULTSET.getBasicTranslation());
+        DBMANIPULATOR.releaseSession();//释放数据库session
     }
 
 

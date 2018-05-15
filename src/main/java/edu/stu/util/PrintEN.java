@@ -15,4 +15,5 @@ public interface PrintEN {
     String NO_RESULT = "Translate failed, please check your spelling. ";
     String INTERNET_ERROR = "No internet, please check your network connection. ";
     String FAILURE = "Translate failed: ";
+    String DBERROR = "Connect to local \'youdao\' database failed.";
 }

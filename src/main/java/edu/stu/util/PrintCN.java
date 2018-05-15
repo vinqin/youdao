@@ -15,4 +15,5 @@ public interface PrintCN {
     String NO_RESULT = "翻译失败，请确认您的拼写是否正确.";
     String INTERNET_ERROR = "网络错误，请检查您的网络连接状态.";
     String FAILURE = "查询失败：";
+    String DBERROR = "与本地\'youdao\'数据库建立连接失败！";
 }
