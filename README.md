@@ -42,7 +42,7 @@ Description:
 
 ```
 
-## Sample
+## Samples
 
 ![sample1](pic/sample1.png)
 
@@ -50,7 +50,11 @@ Description:
 
 ![sample3](pic/sample3.png)
 
+## License & copyright
 
+© Vin Qin, Computer Science Department of ShanTou University
+
+Licensed under the [MIT License](LICENSE).
 
 ------
 
