@@ -25,7 +25,7 @@ public class TOOL {
     /**
      * 准备发送到有道API的HTTP POST参数
      *
-     * @return HTTP POST表单所需要填入的参数
+     * @return 有道API传回来的JSON字符串
      */
     public static String requestForHttp() throws Exception {
         String result = "";

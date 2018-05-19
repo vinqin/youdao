@@ -43,8 +43,8 @@ public class DBManipulator {
         if (basicTranslation != null) {
             List<BasicExplains> explains = basicMapper.getBasicExplainsByBid(basicTranslation.getId());
             basicTranslation.setExplainsList(explains);
-            List<WebTranslation> web = basicMapper.getWebTranslationByBid(basicTranslation.getId());
-            basicTranslation.setWebTranslationList(web);
+            List<WebTranslation> webs = basicMapper.getWebTranslationByBid(basicTranslation.getId());
+            basicTranslation.setWebTranslationList(webs);
         }
         return basicTranslation;
     }
