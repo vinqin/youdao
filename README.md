@@ -5,13 +5,13 @@ A Linux translate tool based on JRE8, MySQL5.7 and Bash.
 
 This is an international translate tool which works in a bash environment. It uses the `Youdao`[^noa] online API translate service and local `mysql` server to support a personal translate service. The tool can translate nine languages including English, Simplified Chinese, Japanese, Korean,  French, Russian, Portuguese, Spanish and Vietnamese from one to another one.
 
-## Preinstall
+## Pre-installation
 
 1. Install JRE1.8 or above.
 2. Install MySQL5.7+
 3. [optional] Install`sox`(a multimedia player) and it's corresponding media library if you are going to play the pronunciation of translations.
 
-## Install
+## Installation
 
 Download the script `yd` and jar file `Youdao-3.1.0-SNAPSHOT.jar` within setup directory and put them in the same directory.
 
@@ -50,7 +50,7 @@ Description:
 
 ![sample3](pic/sample3.png)
 
-## License & copyright
+## License
 
 © Vin Qin, Computer Science Department of ShanTou University
 
