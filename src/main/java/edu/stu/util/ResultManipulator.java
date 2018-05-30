@@ -202,10 +202,15 @@ public class ResultManipulator {
                 String webValue = "";
                 ArrayList<String> aList = (ArrayList) map1.get("value");
                 for (String v : aList) {
-                    webValue = webValue + " " + v;
+                    webValue = webValue + "; " + v;
                 }
                 webKey = webKey.trim();
                 webValue = webValue.trim();
+                //如果webValue第一个字符为';' 则去除该字符
+                if (webValue.startsWith(";")) {
+                    webValue = webValue.substring(1).trim();
+                }
+
                 webs.add(new WebTranslation(webKey, webValue));
             }
 
@@ -342,7 +347,6 @@ public class ResultManipulator {
             resultPrint.append(web.getWebValue());
             resultPrint.append("\"\n");
         }
-
 
     }
 

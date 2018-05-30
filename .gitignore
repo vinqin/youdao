@@ -5,5 +5,5 @@
 *.iml
 out
 gen
-/target
+target
 /src/test
