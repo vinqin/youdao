@@ -68,8 +68,8 @@ public class DBManipulator {
                 web.setbId(id);
             }
         }
-        int n1 = basicMapper.addBasicExplains(basic);
-        int n2 = basicMapper.addWebTranslation(basic);
+        int n1 = basic.getExplainsList().size() != 0 ? basicMapper.addBasicExplains(basic) : 0;
+        int n2 = basic.getWebTranslationList().size() != 0 ? basicMapper.addWebTranslation(basic) : 0;
         return flag || ((n1 + n2) > 0);
     }
 
